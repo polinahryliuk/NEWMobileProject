@@ -5,30 +5,32 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.frenchcards.newfinalproject.viewModel.FlashcardViewModel
+import com.frenchcards.newfinalproject.viewModel.FlashcardViewModelFactory
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddCardScreen(
-    navController: NavController,
-    viewModel: FlashcardViewModel = viewModel()
-) {
+fun AddCardScreen(navController: NavController) {
+    val context = LocalContext.current
+    val application = context.applicationContext as android.app.Application
+    val viewModel: FlashcardViewModel = viewModel(
+        factory = FlashcardViewModelFactory(application)
+    )
     var frenchWord by remember { mutableStateOf("") }
-    var englishTranslation by remember { mutableStateOf("") }
-    var category by remember { mutableStateOf("General") }
+    var englishWord by remember { mutableStateOf("") }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Add New Card") },
+                title = { Text("Add French Word") },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.Filled.ArrowBack, "Back")
+                        Icon(Icons.Default.ArrowBack, "Back")
                     }
                 }
             )
@@ -37,63 +39,47 @@ fun AddCardScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+                .padding(16.dp)
         ) {
+            Row {
+                IconButton(onClick = { navController.popBackStack() }) {
+                    Icon(Icons.Filled.ArrowBack, "Back")
+                }
+                Text("Add New Card", style = MaterialTheme.typography.headlineSmall)
+            }
+
+            Spacer(modifier = Modifier.height(32.dp))
+
             OutlinedTextField(
                 value = frenchWord,
                 onValueChange = { frenchWord = it },
                 label = { Text("French Word") },
-                modifier = Modifier.fillMaxWidth(),
-                placeholder = { Text("Ex: Bonjour") }
-            )
-
-            OutlinedTextField(
-                value = englishTranslation,
-                onValueChange = { englishTranslation = it },
-                label = { Text("English Translation") },
-                modifier = Modifier.fillMaxWidth(),
-                placeholder = { Text("Ex: Hello") }
-            )
-
-            OutlinedTextField(
-                value = category,
-                onValueChange = { category = it },
-                label = { Text("Category") },
-                modifier = Modifier.fillMaxWidth(),
-                placeholder = { Text("Ex: Greetings") }
+                modifier = Modifier.fillMaxWidth()
             )
 
             Spacer(modifier = Modifier.height(16.dp))
 
+            OutlinedTextField(
+                value = englishWord,
+                onValueChange = { englishWord = it },
+                label = { Text("English Word") },
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Spacer(modifier = Modifier.height(32.dp))
+
             Button(
                 onClick = {
-                    if (frenchWord.isNotBlank() && englishTranslation.isNotBlank()) {
-                        viewModel.addFlashcard(frenchWord, englishTranslation)
+                    if (frenchWord.isNotBlank() && englishWord.isNotBlank()) {
+                        viewModel.addFlashcard(frenchWord, englishWord)
                         frenchWord = ""
-                        englishTranslation = ""
-                        navController.popBackStack()  // Go back to home
+                        englishWord = ""
                     }
                 },
-                modifier = Modifier.align(Alignment.End),
-                enabled = frenchWord.isNotBlank() && englishTranslation.isNotBlank()
+                modifier = Modifier.fillMaxWidth(),
+                enabled = frenchWord.isNotBlank() && englishWord.isNotBlank()
             ) {
                 Text("Save Card")
-            }
-
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                elevation = CardDefaults.cardElevation(4.dp)
-            ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Text("Example Cards:", style = MaterialTheme.typography.labelLarge)
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text("• Bonjour - Hello")
-                    Text("• Merci - Thank you")
-                    Text("• Au revoir - Goodbye")
-                    Text("• S'il vous plaît - Please")
-                }
             }
         }
     }

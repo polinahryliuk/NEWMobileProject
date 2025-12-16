@@ -1,21 +1,34 @@
 package com.frenchcards.newfinalproject.ui.screens
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.frenchcards.newfinalproject.viewModel.FlashcardViewModel
+import com.frenchcards.newfinalproject.viewModel.FlashcardViewModelFactory
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StatsScreen(navController: NavController) {
+    val context = LocalContext.current
+    val application = context.applicationContext as android.app.Application
+    val viewModel: FlashcardViewModel = viewModel(
+        factory = FlashcardViewModelFactory(application)
+    )
+    val cards by viewModel.cards.collectAsState()
+    val totalCards = cards.size
+    val categoryCounts = mutableMapOf<String, Int>()
+    for (card in cards) {
+        val category = card.category
+        categoryCounts[category] = categoryCounts.getOrDefault(category, 0) + 1
+    }
     Scaffold(
         topBar = {
             TopAppBar(
@@ -35,121 +48,85 @@ fun StatsScreen(navController: NavController) {
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                StatCard(
-                    title = "Total Cards",
-                    value = "42",
-                    icon = Icons.Filled.CheckCircle,
-                    modifier = Modifier.weight(1f)
-                )
 
-                StatCard(
-                    title = "Mastered",
-                    value = "15",
-                    icon = Icons.Filled.CheckCircle,
-                    modifier = Modifier.weight(1f)
-                )
-            }
+            StatCard("Total Cards", totalCards.toString())
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                StatCard(
-                    title = "Today's Reviews",
-                    value = "8",
-                    icon = Icons.Filled.Timer,
-                    modifier = Modifier.weight(1f)
-                )
-
-                StatCard(
-                    title = "Streak",
-                    value = "5 days",
-                    icon = Icons.Filled.Timer,
-                    modifier = Modifier.weight(1f)
-                )
-            }
-
-            // Progress Chart (Placeholder)
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                elevation = CardDefaults.cardElevation(4.dp)
-            ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Text(
-                        "Progress Over Time",
-                        style = MaterialTheme.typography.titleLarge
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-                    // Placeholder for chart
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(200.dp)
-                            .background(MaterialTheme.colorScheme.surfaceVariant)
+            if (categoryCounts.isNotEmpty()) {
+                Card(
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(
+                        modifier = Modifier.padding(16.dp)
                     ) {
                         Text(
-                            "Chart would appear here",
-                            modifier = Modifier.align(Alignment.Center)
+                            "Cards by Category",
+                            style = MaterialTheme.typography.titleLarge,
+                            modifier = Modifier.padding(bottom = 16.dp)
                         )
+
+                        categoryCounts.forEach { (category, count) ->
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 4.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Text(category)
+                                Text("$count cards")
+                            }
+                        }
                     }
                 }
             }
-
-            // Category Breakdown
             Card(
-                modifier = Modifier.fillMaxWidth(),
-                elevation = CardDefaults.cardElevation(4.dp)
+                modifier = Modifier.fillMaxWidth()
             ) {
-                Column(modifier = Modifier.padding(16.dp)) {
+                Column(
+                    modifier = Modifier.padding(16.dp)
+                ) {
                     Text(
-                        "By Category",
+                        if (totalCards == 0) "No cards yet" else "Your cards",
                         style = MaterialTheme.typography.titleLarge
                     )
-                    Spacer(modifier = Modifier.height(16.dp))
-                    listOf(
-                        "Greetings" to "8 cards",
-                        "Food" to "12 cards",
-                        "Travel" to "15 cards",
-                        "Business" to "7 cards"
-                    ).forEach { (category, count) ->
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            Text(category)
-                            Text(count)
-                        }
-                        Divider(modifier = Modifier.padding(vertical = 8.dp))
-                    }
+                    Text(
+                        if (totalCards == 0)
+                            "Add some flashcards to get started"
+                        else
+                            "You have $totalCards cards in ${categoryCounts.size} categories",
+                        modifier = Modifier.padding(top = 8.dp)
+                    )
                 }
             }
         }
     }
 }
-
 @Composable
 fun StatCard(
     title: String,
     value: String,
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    modifier: Modifier = Modifier
 ) {
     Card(
-        modifier = modifier,
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(100.dp),
         elevation = CardDefaults.cardElevation(4.dp)
     ) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
         ) {
-            Icon(icon, contentDescription = null, modifier = Modifier.size(32.dp))
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(value, style = MaterialTheme.typography.displaySmall)
-            Text(title, style = MaterialTheme.typography.bodySmall)
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    value,
+                    style = MaterialTheme.typography.headlineMedium
+                )
+                Text(
+                    title,
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
         }
     }
 }

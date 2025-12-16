@@ -18,13 +18,15 @@ abstract class FlashcardDatabase : RoomDatabase() {
         private var Instance: FlashcardDatabase? = null
 
         fun getDatabase(context: Context): FlashcardDatabase {
-            return Instance ?: synchronized(this) {
+            return Instance ?: synchronized(this)
+            {
                 Room.databaseBuilder(
                     context,
                     FlashcardDatabase::class.java,
-                    "flashcard_database"
+                    "french_flashcards.db"
                 )
                     .fallbackToDestructiveMigration()
+                    .allowMainThreadQueries()
                     .build()
                     .also { Instance = it }
             }

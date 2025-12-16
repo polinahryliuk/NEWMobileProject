@@ -1,5 +1,6 @@
 package com.frenchcards.newfinalproject.ui.screens
 
+import android.app.Application
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -12,12 +13,23 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import com.frenchcards.newfinalproject.viewModel.FlashcardViewModel
+import com.frenchcards.newfinalproject.viewModel.FlashcardViewModelFactory
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(navController: NavController) {
+    val context = LocalContext.current
+    val application = context.applicationContext as android.app.Application
+
+    val viewModel: FlashcardViewModel = viewModel(
+        factory = FlashcardViewModelFactory(application)
+    )
+
     Scaffold(
         topBar = {
             TopAppBar(title = { Text("French Flashcards") })
@@ -37,7 +49,6 @@ fun HomeScreen(navController: NavController) {
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Quick Stats
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 elevation = CardDefaults.cardElevation(4.dp)
@@ -45,13 +56,11 @@ fun HomeScreen(navController: NavController) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text("Ready to learn?", style = MaterialTheme.typography.headlineSmall)
                     Spacer(modifier = Modifier.height(8.dp))
-                    Text("25 cards to review today", style = MaterialTheme.typography.bodyLarge)
+                    Text("3 cards to review today", style = MaterialTheme.typography.bodyLarge)
                 }
             }
-
             Spacer(modifier = Modifier.height(32.dp))
 
-            // Action Buttons
             ActionButton(
                 icon = Icons.Filled.PlayArrow,
                 text = "Start Review",
@@ -70,14 +79,11 @@ fun HomeScreen(navController: NavController) {
                 onClick = { navController.navigate("settings") }
             )
 
-            // Recent Cards List
             Text(
-                "Recent Cards",
+                "Example of Cards",
                 style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier.padding(top = 32.dp, bottom = 16.dp)
             )
-
-            // Placeholder for card list
             LazyColumn {
                 items(listOf("Bonjour", "Merci", "Au revoir", "S'il vous plaît")) { word ->
                     ListItem(

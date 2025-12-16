@@ -109,7 +109,10 @@ fun StatCard(
         modifier = Modifier
             .fillMaxWidth()
             .height(100.dp),
-        elevation = CardDefaults.cardElevation(4.dp)
+        elevation = CardDefaults.cardElevation(4.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.primary,
+        )
     ) {
         Box(
             modifier = Modifier.fillMaxSize(),
